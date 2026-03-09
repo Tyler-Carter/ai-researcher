@@ -31,8 +31,8 @@ Uses a modular monorepo and keeps execution centralized.
 - Celery or Dramatiq later, not in v1
 
 **Why**
-- FastAPI + Pydantic gives you typed request/response models, validation, and OpenAPI generation out of the box. ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/response-model/?utm_source=chatgpt.com))
-- PostgreSQL is a good fit because you need relational storage for sessions, sources, claims, and reports, while still benefiting from `jsonb` for trace/event payloads and native full-text search support. ([postgresql.org](https://www.postgresql.org/docs/current/datatype-json.html?utm_source=chatgpt.com))
+- FastAPI + Pydantic provides a typed request/response models, validation, and OpenAPI generation out of the box. ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/response-model/?utm_source=chatgpt.com))
+- PostgreSQL to enable relational storage for sessions, sources, claims, and reports, while still benefiting from `jsonb` for trace/event payloads and native full-text search support. ([postgresql.org](https://www.postgresql.org/docs/current/datatype-json.html?utm_source=chatgpt.com))
 
 ### Frontend
 - React
@@ -52,7 +52,7 @@ Uses a modular monorepo and keeps execution centralized.
 
 ## 3. System architecture
 
-Use an **explicit orchestrator**, not autonomous agent-to-agent freeform messaging.
+Use an **explicit orchestrator**, not autonomous agent-to-agent free form messaging.
 
 ### Core services
 - `planner_service`
@@ -84,7 +84,7 @@ POST /research/run
   -> return session_id + report snapshot
 ```
 
-For the advanced version:
+For version 2.0:
 
 ```text
 POST /research/run-iterative
@@ -95,22 +95,22 @@ POST /research/run-iterative
   -> repeat until stopping condition met
 ```
 
-Do not let downstream agents invent their own schemas. Every stage reads and writes typed objects.
+Ensure downstream agents do not create their own schemas. Every stage reads and writes typed objects.
 
 ---
 
 ## 4. Package and repo layout
 
 ```text
-autonomous-research-agent/
-  apps/
+ai-researcher/
+  backend/
     api/
       app/
         main.py
         routes/
         dependencies/
         config/
-    web/
+    frontend/
       src/
         pages/
         components/
@@ -165,7 +165,7 @@ autonomous-research-agent/
 
 ## 5. Canonical data model
 
-Use this as the system’s actual contract layer.
+System's contract layer.
 
 ### ResearchSession
 ```json
@@ -176,11 +176,12 @@ Use this as the system’s actual contract layer.
   "domain_mode": "mixed",
   "status": "completed",
   "created_at": "datetime",
-  "updated_at": "datetime"
+  "updated_at": "datetime",
   "provider": "ollama",
   "model": "qwen3:8b",
-  "run_mode": "local_free"
+  "run_mode": "local_free",
   "comparison_group_id": "str | None = None"
+}
 ```
 
 ### Plan
@@ -210,7 +211,11 @@ Use this as the system’s actual contract layer.
 ```
 
 ### Source
-Include external IDs because these APIs expose overlapping but different metadata models: OpenAlex covers works/authors/sources, Crossref is strong for DOI-centered metadata, Semantic Scholar exposes paper/author/citation graph data, and arXiv provides preprint metadata through its API. ([developers.openalex.org](https://developers.openalex.org/api-reference/introduction?utm_source=chatgpt.com))
+External IDs are included because these APIs expose overlapping but different metadata models: 
+* OpenAlex covers works/authors/sources
+* Crossref is strong for DOI-centered metadata
+* Semantic Scholar exposes paper/author/citation graph data
+* arXiv provides preprint metadata through its API. ([developers.openalex.org](https://developers.openalex.org/api-reference/introduction?utm_source=chatgpt.com))
 
 ```json
 {
@@ -310,7 +315,7 @@ Include external IDs because these APIs expose overlapping but different metadat
   "limitations": ["string"],
   "evidence_gaps": ["string"],
   "source_table": [],
-  "appendix_trace_ref": "uuid"
+  "appendix_trace_ref": "uuid",
   "provider_summary": "string",
   "benchmark_summary": "string",
   "comparison_index": "string"
@@ -570,8 +575,6 @@ Show:
 
 ## 11. Evidence gaps section
 
-This should be a first-class artifact, not an afterthought.
-
 Generate gaps from:
 - uncovered sub-questions
 - claims with only one weak source
@@ -586,7 +589,7 @@ if a sub-question has fewer than 2 credible supporting sources, add it to `evide
 
 ## 12. Iterative research loop for Layer 3
 
-Do not make this open-ended. Use bounded iterations.
+Required to use bounded iterations.
 
 ### Loop state
 ```json
@@ -618,7 +621,7 @@ This gives you agentic behavior without turning the system into uncontrolled loo
 
 ## 13. Domain packs
 
-Implement these as config bundles, not separate codebases.
+To be implemented as config bundles, not separate codebases.
 
 ### DomainPack interface
 ```python
@@ -802,7 +805,7 @@ Include:
 
 ## 18. Evaluation harness
 
-This is where the project becomes portfolio-grade.
+Requirements for being "production ready":
 
 ### Benchmark dataset
 Create 25–50 prompts across:
@@ -841,7 +844,7 @@ Use 1–5 scales for:
 
 ## 19. Observability and debugging
 
-Add this from day one.
+Requirement to start the project.
 
 ### Log every stage
 For each session persist:
@@ -976,10 +979,12 @@ The system can justify when it searched more and why it stopped.
 
 ---
 
-## 22. Biggest engineering risks
+## Engineering risks
 
 ### 1. Retrieval inconsistency
-Different APIs return different metadata shapes and coverage. Your normalization layer is the real product surface, not the connectors themselves. OpenAlex, Crossref, Semantic Scholar, and arXiv all expose different retrieval styles and metadata granularity, so you should assume heterogeneity by design. ([developers.openalex.org](https://developers.openalex.org/api-reference/introduction?utm_source=chatgpt.com))
+Different APIs return different metadata shapes and coverage. 
+OpenAlex, Crossref, Semantic Scholar, and arXiv all expose different retrieval styles and metadata granularity.
+Heterogeneity should be assumed by design. ([developers.openalex.org](https://developers.openalex.org/api-reference/introduction?utm_source=chatgpt.com))
 
 ### 2. Weak citation grounding
 Fix by requiring every report claim to reference one or more `source_id`s.
@@ -995,9 +1000,9 @@ Fix by shipping Layer 1 before touching iterative research.
 
 ---
 
-## 23. What makes this portfolio-worthy
+## Requirements for being "portfolio ready":
 
-Emphasize these in the case study:
+The following are emphasized in the case study:
 - schema-constrained multi-agent orchestration
 - heterogeneous scholarly API integration
 - credibility scoring with transparent rationale
@@ -1006,11 +1011,7 @@ Emphasize these in the case study:
 - benchmarked report quality
 - audit-friendly UX
 
-That framing is stronger than presenting it as “an AI research bot.”
-
-## 24. Best exact first build
-
-This is the slice I would build first:
+## Phase 1 MVP
 
 - one query input
 - planner returns 5 sub-questions
@@ -1020,5 +1021,3 @@ This is the slice I would build first:
 - summarizer writes notes for top 8
 - report generator writes markdown with citations
 - frontend shows trace, source table, report, session save
-
-That
