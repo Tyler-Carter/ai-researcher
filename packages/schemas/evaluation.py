@@ -10,6 +10,7 @@ class SourceEvaluation(BaseModel):
     source_id: UUID
     relevance_score: float
     credibility_score: float
+    recency_score: float
     corroboration_score: float
     metadata_completeness_score: float
     overall_score: float
@@ -23,4 +24,3 @@ class SourceEvaluation(BaseModel):
     token_usage: dict[str, int] = Field(default_factory=lambda: {"input": 0, "output": 0})
     estimated_cost_usd: float = 0.0
     schema_valid: bool = True
-    
