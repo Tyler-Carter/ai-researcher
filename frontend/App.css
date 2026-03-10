@@ -1,3 +1,4 @@
+@import url(https://fonts.googleapis.com/css?family=Squada+One);
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -9,27 +10,59 @@
   gap: 1rem;
 }
 
-.query-form {
-  display: flex;
-  gap: 0.75rem;
+.logo {
+  text-shadow: 1px 1px 0px #264653, 2px 2px 0px #264653, 3px 3px 0px #264653, 4px 4px 0px #264653, 5px 5px 0px #264653, 6px 6px 0px #264653, 7px 7px 0px #264653, 8px 8px 0px #264653, 9px 9px 0px #264653, 10px 10px 0px #264653, 11px 11px 0px #264653, 12px 12px 0px #264653, 13px 13px 0px #264653, 14px 14px 0px #264653, 15px 15px 0px #264653, 16px 16px 0px #264653, 17px 17px 0px #264653, 18px 18px 0px #264653, 19px 19px 0px #264653, 20px 20px 0px #264653, 21px 21px 0px #264653, 22px 22px 0px #264653, 23px 23px 0px #264653, 24px 24px 0px #264653, 25px 25px 0px #264653, 26px 26px 0px #264653, 27px 27px 0px #264653, 28px 28px 0px #264653, 29px 29px 0px #264653, 30px 30px 0px #264653;
+  text-align: center;
+  margin-top: 0.5em;
+  font-size: 8em;
+  font-family: "Squada One", cursive;
+  color: #e9c46a
 }
-
-.query-form input {
-  flex: 1;
-  padding: 0.55rem;
+.search {
+  position: relative;
+  z-index: 10;
+  text-align: center;
 }
-
-.results article {
-  margin: 1rem 0;
+.search input[type="text"] {
+  width: 400px;
+  padding: 5px;
+  font-size: 1.3em;
+  margin: 1em auto 0px;
+  display: block;
+  box-shadow: 1px 1px 0px #264653, 2px 2px 0px #264653, 3px 3px 0px #264653, 4px 4px 0px #264653, 5px 5px 0px #264653, 6px 6px 0px #264653, 7px 7px 0px #264653, 8px 8px 0px #264653, 9px 9px 0px #264653, 10px 10px 0px #264653, 11px 11px 0px #264653, 12px 12px 0px #264653, 13px 13px 0px #264653, 14px 14px 0px #264653, 15px 15px 0px #264653, 16px 16px 0px #264653, 17px 17px 0px #264653, 18px 18px 0px #264653, 19px 19px 0px #264653, 20px 20px 0px #264653, 21px 21px 0px #264653, 22px 22px 0px #264653, 23px 23px 0px #264653, 24px 24px 0px #264653, 25px 25px 0px #264653, 26px 26px 0px #264653, 27px 27px 0px #264653, 28px 28px 0px #264653, 29px 29px 0px #264653, 30px 30px 0px #264653;
+  border: 3px solid #e76f51;
+  outline: 0;
 }
-
-pre {
-  background: #111;
-  color: #f1f1f1;
-  overflow: auto;
-  padding: 0.75rem;
+.search input[type="text"]:focus {
+  border: 3px solid #f4a261;
 }
-
+.search button {
+  background: #f4a261;
+  border: 3px solid #e76f51;
+  font-size: 1.5em;
+  font-family: "Squada One", cursive;
+  box-shadow: 1px 1px 0px #264653, 2px 2px 0px #264653, 3px 3px 0px #264653, 4px 4px 0px #264653, 5px 5px 0px #264653, 6px 6px 0px #264653, 7px 7px 0px #264653, 8px 8px 0px #264653, 9px 9px 0px #264653, 10px 10px 0px #264653, 11px 11px 0px #264653, 12px 12px 0px #264653, 13px 13px 0px #264653, 14px 14px 0px #264653, 15px 15px 0px #264653, 16px 16px 0px #264653, 17px 17px 0px #264653, 18px 18px 0px #264653, 19px 19px 0px #264653, 20px 20px 0px #264653, 21px 21px 0px #264653, 22px 22px 0px #264653, 23px 23px 0px #264653, 24px 24px 0px #264653, 25px 25px 0px #264653, 26px 26px 0px #264653, 27px 27px 0px #264653, 28px 28px 0px #264653, 29px 29px 0px #264653, 30px 30px 0px #264653;
+  cursor: pointer;
+  display: inline-block;
+  margin: 3px 5px;
+  color: #264653;
+}
+.search button:active {
+  margin: 8px 5px;
+}
+.search .button {
+  *zoom: 1;
+  margin: 0.5em auto;
+  width: 16%;
+}
+.search .button:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.search .button button {
+  float: left;
+}
 .error {
   color: #d62828;
 }

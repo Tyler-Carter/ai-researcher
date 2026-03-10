@@ -56,17 +56,23 @@ function App() {
 
   return (
       <main className="app-shell">
-          <h1>Run Research</h1>
-          <form onSubmit={onSubmit} className="query-form">
-              <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Enter a research question..."
-              />
-              <button type="submit" disabled={loading}>
-                  {loading ? 'Running...' : 'Run'}
-              </button>
-          </form>
+          <div className="logo">AI Researcher</div>
+          <div className="search">
+              <form onSubmit={onSubmit}>
+                  <input
+                      type="text"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder="Enter a research question..."
+                  />
+                  <div className="button">
+                      <button type="submit" disabled={loading}>
+                          {loading ? 'Running...' : 'Run'}
+                      </button>
+                  </div>
+              </form>
+          </div>
+
 
           {error ? <p className="error">{error}</p> : null}
 

@@ -4,12 +4,7 @@
 }
 
 body {
+  background: #2a9d8f;
   margin: 0;
   min-width: 320px;
-  background: #EA7B7B;
-}
-
-button {
-  cursor: pointer;
-  padding: 0.55rem 1rem;
 }
