@@ -12,7 +12,7 @@ Current repository state is an MVP slice with:
 - A typed end-to-end pipeline (`session -> plan -> retrieval -> evaluation -> summarization -> report`).
 - Pydantic schemas for core artifacts (`ResearchSession`, `Plan`, `Source`, `SourceEvaluation`, `SourceSummary`, `FinalReport`).
 - Local file-backed persistence for completed pipeline artifacts in `backend/data/sessions/*.json`.
-- A React/Vite frontend that submits a query and renders pipeline artifacts.
+- A React/Vite frontend that submits a query, renders pipeline artifacts, and supports export downloads.
 
 ### Implemented from README intent
 
@@ -25,13 +25,13 @@ Current repository state is an MVP slice with:
 7. **Report generation exists** with findings, limitations, evidence gaps, and source table.
 8. **Session artifact persistence now exists** via a storage module and session fetch route.
 9. **Export artifact generation exists** for markdown/html via dedicated export endpoint and storage.
+10. **Frontend export UX exists** via a dedicated exports panel to trigger markdown/html generation and browser downloads.
 
 ### Partially implemented (present but limited)
 
 1. **Persistence is local JSON storage**, not Postgres-backed repositories/migrations.
 2. **Provider/model instrumentation fields** exist in schemas, but runtime values remain placeholders.
 3. **Research planning** exists, but currently uses a static deterministic template (not model-generated planner output).
-4. **Exports are generated on-demand** and saved to local files, but no frontend export UX exists yet.
 
 ### Not yet implemented from README target architecture
 
@@ -55,6 +55,7 @@ Current repository state is an MVP slice with:
 - Scholarly retrieval coverage (Semantic Scholar + arXiv) in retrieval stage.
 - Local file-backed session/artifact persistence plus session retrieval endpoint.
 - Markdown/HTML export generation endpoint and local export artifact persistence.
+- Frontend markdown/html export controls with browser download workflow (visible in the UI and enabled after a run).
 
 ### Next high-impact steps
 
@@ -69,9 +70,8 @@ Implement the next roadmap step by adding persistent session/artifact storage fo
 
 ### Steps accomplished
 
-1. Added `packages/exports/markdown.py` to generate a canonical markdown report from `PipelineArtifacts`.
-2. Added `packages/exports/html.py` to generate a canonical HTML report from `PipelineArtifacts`.
-3. Added `packages/storage/export_store.py` to persist generated exports under `backend/data/exports/`.
-4. Extended `backend/api/app/routes/research.py` with `GET /research/{session_id}/export/{export_format}` to generate + persist markdown/html exports per session.
-5. Kept planning/retrieval/evaluation/summarization/report orchestration logic unchanged to scope this task strictly to export artifacts.
-
+1. Extended `frontend/App.tsx` state and handlers to call `GET /research/{session_id}/export/{export_format}` for markdown/html.
+2. Added browser download logic in the frontend to save returned export content as `.md` or `.html` files.
+3. Added a dedicated exports panel in the UI with markdown/html download buttons, disabled-state guidance before a run, and status messaging.
+4. Updated `frontend/App.css` with lightweight export-action and status styles.
+5. Kept backend orchestration and export generation logic unchanged to scope the task strictly to frontend export UX.
