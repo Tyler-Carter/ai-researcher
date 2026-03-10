@@ -59,18 +59,18 @@ Current repository state is an MVP slice with:
 
 ### Next high-impact steps
 
-1. Expand contradiction analysis from title/abstract cue detection to claim-level contradiction mapping with explicit source-to-source links.
+1. Add explicit schema-validation checkpoints at stage boundaries (simulate Structured Outputs handoff validation before each stage consumes upstream artifacts).
 
 ---
 
 ## 3) Task completed in this update
 
 ### Task
-Implement the next roadmap step by adding heuristic contradiction-aware synthesis in report generation.
+Implement the next roadmap step by adding claim-level contradiction mapping with explicit source-to-source links.
 
 ### Steps accomplished
 
-1. Added lightweight stance classification that labels retrieved sources as supporting, contradicting, or neutral using title/abstract lexical cues.
-2. Added report-level competing-view synthesis that summarizes whether evidence is mixed, mostly supportive, mostly cautionary, or lacking explicit contrast.
-3. Updated report evidence-gap generation to call out missing contradictory evidence when conflict signals are absent.
-4. Kept retrieval/evaluation contracts unchanged so the change remains scoped to the report synthesis stage.
+1. Added a `contradiction_map` field to the `FinalReport` schema to carry structured contradiction pairs.
+2. Implemented heuristic claim extraction and source-pair mapping between supporting and contradicting evidence.
+3. Wired contradiction map generation into report synthesis so report artifacts include explicit linked pairs with rationale.
+4. Updated summary counterpoints/evidence-gap messaging to reflect the new contradiction mapping coverage and its heuristic limitations.
