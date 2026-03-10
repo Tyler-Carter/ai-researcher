@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from datetime import date, datetime
+from dataclasses import dataclass
 from typing import Any, Literal, TypeVar
 from urllib.parse import quote_plus
 from urllib.request import Request, urlopen
@@ -23,7 +24,6 @@ from packages.schemas import (
     StoppingConditions,
 )
 
-
 class PipelineArtifacts(BaseModel):
     session: ResearchSession
     plan: Plan
@@ -31,6 +31,39 @@ class PipelineArtifacts(BaseModel):
     evaluations: list[SourceEvaluation]
     summaries: list[SourceSummary]
     report: FinalReport
+
+
+class StageExecutionMetadata(BaseModel):
+    stage: str
+    provider: str
+    model: str
+    prompt_version: str
+    schema_version: str
+    run_mode: str
+
+
+@dataclass(frozen=True)
+class StageModelAdapter:
+    stage: str
+    provider: str = "deterministic"
+    model: str = "local-heuristic-v1"
+    prompt_version: str = "none"
+    schema_version: str = "v1"
+    run_mode: str = "mvp_scaffold"
+
+    def metadata(self) -> StageExecutionMetadata:
+        return StageExecutionMetadata(
+            stage=self.stage,
+            provider=self.provider,
+            model=self.model,
+            prompt_version=self.prompt_version,
+            schema_version=self.schema_version,
+            run_mode=self.run_mode,
+        )
+
+    def execute(self, fn: Any, *args: Any, **kwargs: Any) -> tuple[Any, StageExecutionMetadata]:
+        return fn(*args, **kwargs), self.metadata()
+
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
@@ -54,7 +87,7 @@ def _validate_stage_list(model_type: type[ModelT], artifacts: list[ModelT], stag
         validated.append(normalized)
     return validated
 
-def _build_session(query: str) -> ResearchSession:
+def _build_session(query: str, metadata: StageExecutionMetadata) -> ResearchSession:
     now = datetime.now(tz=None)
     return ResearchSession(
         session_id=uuid4(),
@@ -62,9 +95,14 @@ def _build_session(query: str) -> ResearchSession:
         status="running",
         created_at=now,
         updated_at=now,
+        provider=metadata.provider,
+        model=metadata.model,
+        run_mode=metadata.run_mode,
+        prompt_version=metadata.prompt_version,
+        schema_version=metadata.schema_version,
     )
 
-def _build_plan(session: ResearchSession) -> Plan:
+def _build_plan(session: ResearchSession, metadata: StageExecutionMetadata) -> Plan:
     return Plan(
         plan_id=uuid4(),
         session_id=session.session_id,
@@ -82,6 +120,11 @@ def _build_plan(session: ResearchSession) -> Plan:
             )
         ],
         stopping_conditions=StoppingConditions(),
+        provider=metadata.provider,
+        model=metadata.model,
+        run_mode=metadata.run_mode,
+        prompt_version=metadata.prompt_version,
+        schema_version=metadata.schema_version,
     )
 
 
@@ -387,7 +430,7 @@ def _deduplicate_sources(candidates: list[Source]) -> list[Source]:
 
 
 
-def _evaluate_sources(sources: list[Source]) -> list[SourceEvaluation]:
+def _evaluate_sources(sources: list[Source], metadata: StageExecutionMetadata) -> list[SourceEvaluation]:
     evaluations: list[SourceEvaluation] = []
     for source in sources:
         relevance_score = 0.8
@@ -442,6 +485,11 @@ def _evaluate_sources(sources: list[Source]) -> list[SourceEvaluation]:
                 ],
                 decision=decision,
                 flags=flags,
+                provider=metadata.provider,
+                model=metadata.model,
+                run_mode=metadata.run_mode,
+                prompt_version=metadata.prompt_version,
+                schema_version=metadata.schema_version,
                 latency_ms=5,
             )
         )
@@ -449,7 +497,11 @@ def _evaluate_sources(sources: list[Source]) -> list[SourceEvaluation]:
     return evaluations
 
 
-def _summarize_sources(sources: list[Source], evaluations: list[SourceEvaluation]) -> list[SourceSummary]:
+def _summarize_sources(
+        sources: list[Source],
+        evaluations: list[SourceEvaluation],
+        metadata: StageExecutionMetadata,
+) -> list[SourceSummary]:
     evaluation_by_source = {evaluation.source_id: evaluation for evaluation in evaluations}
 
     summaries: list[SourceSummary] = []
@@ -477,6 +529,11 @@ def _summarize_sources(sources: list[Source], evaluations: list[SourceEvaluation
                 counterpoints=["Contradiction checks include heuristic claim-level comparisons."],
                 evidence_snippets=[{"text": source.title, "location": "title"}],
                 citation_anchor=f"[S{index}]",
+                provider=metadata.provider,
+                model=metadata.model,
+                prompt_version=metadata.prompt_version,
+                schema_version=metadata.schema_version,
+                run_mode=metadata.run_mode,
             )
         )
     return summaries
@@ -486,6 +543,7 @@ def _generate_report(
     session: ResearchSession,
     summaries: list[SourceSummary],
     sources: list[Source],
+    metadata: StageExecutionMetadata,
 ) -> FinalReport:
     competing_views = _build_competing_views(sources)
     contradiction_map = _build_contradiction_map(sources)
@@ -511,18 +569,52 @@ def _generate_report(
             evidence_gaps=evidence_gaps,
             source_table=[{"source_id": str(source.source_id), "title": source.title} for source in sources],
             appendix_trace_ref=str(session.session_id),
-        )
+            provider_summary=(
+                f"{metadata.stage}: provider={metadata.provider}, model={metadata.model}, "
+                f"prompt={metadata.prompt_version}, schema={metadata.schema_version}"
+            ),
+            provider=metadata.provider,
+            model=metadata.model,
+            prompt_version=metadata.prompt_version,
+            schema_version=metadata.schema_version,
+            run_mode=metadata.run_mode,
+    )
 
 
 def run_pipeline(query: str) -> PipelineArtifacts:
-    session = _validate_stage_model(ResearchSession, _build_session(query), "session_creation")
-    plan = _validate_stage_model(Plan, _build_plan(session), "planning")
+    session_adapter = StageModelAdapter(stage="session")
+    planner_adapter = StageModelAdapter(stage="planner", prompt_version="planner-v1")
+    evaluator_adapter = StageModelAdapter(stage="evaluator", prompt_version="evaluator-v1")
+    summarizer_adapter = StageModelAdapter(stage="summarizer", prompt_version="summarizer-v1")
+    reporter_adapter = StageModelAdapter(stage="reporter", prompt_version="reporter-v1")
+
+    session_payload, session_meta = session_adapter.execute(_build_session, query, session_adapter.metadata())
+    session = _validate_stage_model(ResearchSession, session_payload, "session_creation")
+
+    plan_payload, _plan_meta = planner_adapter.execute(_build_plan, session, planner_adapter.metadata())
+    plan = _validate_stage_model(Plan, plan_payload, "planning")
+
     sources = _validate_stage_list(Source, _retrieve_sources(session, plan), "retrieval")
-    evaluations = _validate_stage_list(SourceEvaluation, _evaluate_sources(sources), "evaluation")
-    summaries = _validate_stage_list(SourceSummary, _summarize_sources(sources, evaluations), "summarization")
-    report = _validate_stage_model(FinalReport, _generate_report(session, summaries, sources), "report_generation")
-    completed_session = session.model_copy(update={"status": "completed", "updated_at": datetime.now(tz=None)})
-    completed_session = _validate_stage_model(ResearchSession, completed_session, "session_completion")
+    evaluations_payload, _eval_meta = evaluator_adapter.execute(_evaluate_sources, sources, evaluator_adapter.metadata())
+    evaluations = _validate_stage_list(SourceEvaluation, evaluations_payload, "evaluation")
+
+    summaries_payload, _summary_meta = summarizer_adapter.execute(_summarize_sources, sources, evaluations, summarizer_adapter.metadata())
+    summaries = _validate_stage_list(SourceSummary, summaries_payload, "summarization")
+
+    report_payload, _report_meta = reporter_adapter.execute(_generate_report, session, summaries, sources, reporter_adapter.metadata())
+    report = _validate_stage_model(FinalReport, report_payload, "report_generation")
+
+    completed_session = session.model_copy(
+        update={
+            "status": "completed",
+            "updated_at": datetime.now(tz=None),
+            "provider": session_meta.provider,
+            "model": session_meta.model,
+            "run_mode": session_meta.run_mode,
+            "prompt_version": session_meta.prompt_version,
+            "schema_version": session_meta.schema_version,
+        }
+    )
 
     artifacts = PipelineArtifacts(
         session=completed_session,
