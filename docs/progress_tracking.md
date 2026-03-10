@@ -31,8 +31,8 @@ Below are the highest-priority remaining tasks, ordered to align with the README
 ### A. Contract enforcement and model-stage reliability (finish Layer 1 quality bar)
 
 1. Add explicit stage-boundary validation for every handoff (`Plan`, `Source[]`, `SourceEvaluation[]`, `SourceSummary[]`, `FinalReport`) before each downstream stage consumes input.
-2. Introduce provider adapter boundaries for model-driven stages (planner/evaluator/summarizer/reporter) so runtime can capture provider/model/prompt/schema versions consistently.
-3. Replace static/deterministic planner output with schema-constrained model output while preserving server-side validation.
+2. ✅ Introduced provider adapter boundaries for model-driven stages (planner/evaluator/summarizer/reporter) so runtime now captures provider/model/prompt/schema versions consistently.
+3. **Next step:** Replace static/deterministic planner output with schema-constrained model output while preserving server-side validation.
 4. Add structured error payloads for invalid stage outputs (schema failure, empty retrieval, connector timeout) and persist these as trace events.
 
 ### B. Retrieval/evaluation depth and evidence quality
@@ -95,4 +95,6 @@ The project can be considered complete when all are true:
 
 ## 4) Work performed for this update
 
-
+- Added stage-specific model adapter boundaries for planner/evaluator/summarizer/reporter orchestration calls.
+- Captured and persisted provider/model/prompt/schema/run-mode metadata directly in stage artifacts (`Plan`, `SourceEvaluation`, `SourceSummary`, `FinalReport`) and session metadata.
+- Kept the existing deterministic runtime while making stage metadata pluggable for future provider-backed model execution.
