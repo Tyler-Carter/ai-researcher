@@ -454,7 +454,7 @@ def _summarize_sources(sources: list[Source], evaluations: list[SourceEvaluation
                     "Automated extraction may omit method details.",
                     "Scores are heuristic and not model-generated.",
                 ],
-                counterpoints=["Cross-source contradiction checks are not yet implemented."],
+                counterpoints=["Contradiction checks include heuristic claim-level comparisons."],
                 evidence_snippets=[{"text": source.title, "location": "title"}],
                 citation_anchor=f"[S{index}]",
             )
@@ -468,9 +468,10 @@ def _generate_report(
     sources: list[Source],
 ) -> FinalReport:
     competing_views = _build_competing_views(sources)
+    contradiction_map = _build_contradiction_map(sources)
     evidence_gaps = ["Need deeper extraction of methods and outcome measures."]
-    if not any("conflicting" in view.lower() for view in competing_views):
-        evidence_gaps.append("Contradictory evidence remains sparse for this query.")
+    if not contradiction_map:
+        evidence_gaps.append("No explicit claim-level contradiction pairs were detected for this query.")
 
     return FinalReport(
             report_id=uuid4(),
@@ -482,6 +483,7 @@ def _generate_report(
             answer=f"Initial evidence set assembled for query: {session.query}",
             key_findings=[summary.concise_summary for summary in summaries],
             competing_views=competing_views,
+            contradiction_map=contradiction_map,
             limitations=[
                 "Current report is heuristic and connector-driven.",
                 "No iterative planning loop has been applied.",
@@ -530,6 +532,42 @@ def _classify_evidence_stance(source: Source) -> str:
         return "supporting"
     return "neutral"
 
+def _extract_claim_text(source: Source) -> str:
+    claim = (source.abstract or source.title or "").strip()
+    if not claim:
+        return "No claim text available."
+    return claim[:280]
+
+
+def _build_contradiction_map(sources: list[Source]) -> list[dict[str, str]]:
+    supporting: list[Source] = []
+    contradicting: list[Source] = []
+
+    for source in sources:
+        stance = _classify_evidence_stance(source)
+        if stance == "supporting":
+            supporting.append(source)
+        elif stance == "contradicting":
+            contradicting.append(source)
+
+    contradiction_pairs: list[dict[str, str]] = []
+    max_pairs = min(len(supporting), len(contradicting), 5)
+    for i in range(max_pairs):
+        support_source = supporting[i]
+        contradict_source = contradicting[i]
+        contradiction_pairs.append(
+            {
+                "supporting_source_id": str(support_source.source_id),
+                "supporting_title": support_source.title,
+                "supporting_claim": _extract_claim_text(support_source),
+                "contradicting_source_id": str(contradict_source.source_id),
+                "contradicting_title": contradict_source.title,
+                "contradicting_claim": _extract_claim_text(contradict_source),
+                "rationale": "Paired because heuristic stance detection found opposing claim direction.",
+            }
+        )
+
+    return contradiction_pairs
 
 def _build_competing_views(sources: list[Source]) -> list[str]:
     supporting_titles: list[str] = []

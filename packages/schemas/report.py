@@ -11,6 +11,7 @@ class FinalReport(BaseModel):
     answer: str
     key_findings: list[str] = Field(default_factory=list)
     competing_views: list[str] = Field(default_factory=list)
+    contradiction_map: list[dict[str, str]] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     evidence_gaps: list[str] = Field(default_factory=list)
     source_table: list[dict] = Field(default_factory=list)
