@@ -24,22 +24,24 @@ Current repository state is an MVP slice with:
 6. **Summarization exists** as structured notes with citation anchors.
 7. **Report generation exists** with findings, limitations, evidence gaps, and source table.
 8. **Session artifact persistence now exists** via a storage module and session fetch route.
+9. **Export artifact generation exists** for markdown/html via dedicated export endpoint and storage.
 
 ### Partially implemented (present but limited)
 
 1. **Persistence is local JSON storage**, not Postgres-backed repositories/migrations.
 2. **Provider/model instrumentation fields** exist in schemas, but runtime values remain placeholders.
 3. **Research planning** exists, but currently uses a static deterministic template (not model-generated planner output).
+4. **Exports are generated on-demand** and saved to local files, but no frontend export UX exists yet.
 
 ### Not yet implemented from README target architecture
 
-1. **Most layout targets** under `packages/` are still absent or consolidated (agents/, retrieval module split, exports/, benchmarks/).
+1. **Most layout targets** under `packages/` are still absent or consolidated (agents/, retrieval module split, benchmarks/).
 2. **Iterative orchestration endpoint** (`/research/run-iterative`) is not present.
 3. **Structured Outputs + Pydantic double validation** is not implemented (current pipeline is deterministic Python logic).
 4. **Database persistence (PostgreSQL), Redis/job system, migrations, repositories** are not present.
-5. **Export pipeline (markdown/html/pdf)** is not present.
+5. **PDF export pipeline** is not present.
 6. **Benchmarking and comparison dashboard plumbing** is not present.
-7. **Contradiction mining / mixed-evidence synthesis** is not implemented yet
+7. **Contradiction mining / mixed-evidence synthesis** is not implemented yet.
 
 ---
 
@@ -52,10 +54,11 @@ Current repository state is an MVP slice with:
 - Deterministic retrieval/evaluation/summarization/report generation.
 - Scholarly retrieval coverage (Semantic Scholar + arXiv) in retrieval stage.
 - Local file-backed session/artifact persistence plus session retrieval endpoint.
+- Markdown/HTML export generation endpoint and local export artifact persistence.
 
 ### Next high-impact steps
 
-1. Add export generation endpoints and canonical markdown/html artifact creation.
+1. Add frontend export controls to request markdown/html artifacts and provide download UX from session results.
 
 ---
 
@@ -66,8 +69,9 @@ Implement the next roadmap step by adding persistent session/artifact storage fo
 
 ### Steps accomplished
 
-1. Added a new storage module at `packages/storage/session_store.py` for saving and loading `PipelineArtifacts`.
-2. Implemented save-on-run behavior in `POST /research/run` so each completed session is written to `backend/data/sessions/<session_id>.json`.
-3. Added `GET /research/{session_id}` route to fetch persisted artifacts by session id.
-4. Kept retrieval/evaluation/summarization/report logic unchanged to keep this step narrowly scoped to persistence.
+1. Added `packages/exports/markdown.py` to generate a canonical markdown report from `PipelineArtifacts`.
+2. Added `packages/exports/html.py` to generate a canonical HTML report from `PipelineArtifacts`.
+3. Added `packages/storage/export_store.py` to persist generated exports under `backend/data/exports/`.
+4. Extended `backend/api/app/routes/research.py` with `GET /research/{session_id}/export/{export_format}` to generate + persist markdown/html exports per session.
+5. Kept planning/retrieval/evaluation/summarization/report orchestration logic unchanged to scope this task strictly to export artifacts.
 
