@@ -11,7 +11,13 @@
 }
 
 .logo {
-  text-shadow: 1px 1px 0px #264653, 2px 2px 0px #264653, 3px 3px 0px #264653, 4px 4px 0px #264653, 5px 5px 0px #264653, 6px 6px 0px #264653, 7px 7px 0px #264653, 8px 8px 0px #264653, 9px 9px 0px #264653, 10px 10px 0px #264653, 11px 11px 0px #264653, 12px 12px 0px #264653, 13px 13px 0px #264653, 14px 14px 0px #264653, 15px 15px 0px #264653, 16px 16px 0px #264653, 17px 17px 0px #264653, 18px 18px 0px #264653, 19px 19px 0px #264653, 20px 20px 0px #264653, 21px 21px 0px #264653, 22px 22px 0px #264653, 23px 23px 0px #264653, 24px 24px 0px #264653, 25px 25px 0px #264653, 26px 26px 0px #264653, 27px 27px 0px #264653, 28px 28px 0px #264653, 29px 29px 0px #264653, 30px 30px 0px #264653;
+  text-shadow: 1px 1px 0 #264653, 2px 2px 0 #264653, 3px 3px 0 #264653, 4px 4px 0 #264653, 5px 5px 0 #264653,
+               6px 6px 0 #264653, 7px 7px 0 #264653, 8px 8px 0 #264653, 9px 9px 0 #264653, 10px 10px 0 #264653,
+               11px 11px 0 #264653, 12px 12px 0 #264653, 13px 13px 0 #264653, 14px 14px 0 #264653,
+               15px 15px 0 #264653, 16px 16px 0 #264653, 17px 17px 0 #264653, 18px 18px 0 #264653,
+               19px 19px 0 #264653, 20px 20px 0 #264653, 21px 21px 0 #264653, 22px 22px 0 #264653,
+               23px 23px 0 #264653, 24px 24px 0 #264653, 25px 25px 0 #264653, 26px 26px 0 #264653,
+               27px 27px 0 #264653, 28px 28px 0 #264653, 29px 29px 0 #264653, 30px 30px 0 #264653;
   text-align: center;
   margin-top: 0.5em;
   font-size: 8em;
@@ -27,9 +33,14 @@
   width: 400px;
   padding: 5px;
   font-size: 1.3em;
-  margin: 1em auto 0px;
+  margin: 1em auto 0;
   display: block;
-  box-shadow: 1px 1px 0px #264653, 2px 2px 0px #264653, 3px 3px 0px #264653, 4px 4px 0px #264653, 5px 5px 0px #264653, 6px 6px 0px #264653, 7px 7px 0px #264653, 8px 8px 0px #264653, 9px 9px 0px #264653, 10px 10px 0px #264653, 11px 11px 0px #264653, 12px 12px 0px #264653, 13px 13px 0px #264653, 14px 14px 0px #264653, 15px 15px 0px #264653, 16px 16px 0px #264653, 17px 17px 0px #264653, 18px 18px 0px #264653, 19px 19px 0px #264653, 20px 20px 0px #264653, 21px 21px 0px #264653, 22px 22px 0px #264653, 23px 23px 0px #264653, 24px 24px 0px #264653, 25px 25px 0px #264653, 26px 26px 0px #264653, 27px 27px 0px #264653, 28px 28px 0px #264653, 29px 29px 0px #264653, 30px 30px 0px #264653;
+  box-shadow: 1px 1px 0 #264653, 2px 2px 0 #264653, 3px 3px 0 #264653, 4px 4px 0 #264653, 5px 5px 0 #264653,
+              6px 6px 0 #264653, 7px 7px 0 #264653, 8px 8px 0 #264653, 9px 9px 0 #264653, 10px 10px 0 #264653,
+              11px 11px 0 #264653, 12px 12px 0 #264653, 13px 13px 0 #264653, 14px 14px 0 #264653, 15px 15px 0 #264653,
+              16px 16px 0 #264653, 17px 17px 0 #264653, 18px 18px 0 #264653, 19px 19px 0 #264653, 20px 20px 0 #264653,
+              21px 21px 0 #264653, 22px 22px 0 #264653, 23px 23px 0 #264653, 24px 24px 0 #264653, 25px 25px 0 #264653,
+              26px 26px 0 #264653, 27px 27px 0 #264653, 28px 28px 0 #264653, 29px 29px 0 #264653, 30px 30px 0 #264653;
   border: 3px solid #e76f51;
   outline: 0;
 }
@@ -41,7 +52,12 @@
   border: 3px solid #e76f51;
   font-size: 1.5em;
   font-family: "Squada One", cursive;
-  box-shadow: 1px 1px 0px #264653, 2px 2px 0px #264653, 3px 3px 0px #264653, 4px 4px 0px #264653, 5px 5px 0px #264653, 6px 6px 0px #264653, 7px 7px 0px #264653, 8px 8px 0px #264653, 9px 9px 0px #264653, 10px 10px 0px #264653, 11px 11px 0px #264653, 12px 12px 0px #264653, 13px 13px 0px #264653, 14px 14px 0px #264653, 15px 15px 0px #264653, 16px 16px 0px #264653, 17px 17px 0px #264653, 18px 18px 0px #264653, 19px 19px 0px #264653, 20px 20px 0px #264653, 21px 21px 0px #264653, 22px 22px 0px #264653, 23px 23px 0px #264653, 24px 24px 0px #264653, 25px 25px 0px #264653, 26px 26px 0px #264653, 27px 27px 0px #264653, 28px 28px 0px #264653, 29px 29px 0px #264653, 30px 30px 0px #264653;
+  box-shadow: 1px 1px 0 #264653, 2px 2px 0 #264653, 3px 3px 0 #264653, 4px 4px 0 #264653, 5px 5px 0 #264653,
+              6px 6px 0 #264653, 7px 7px 0 #264653, 8px 8px 0 #264653, 9px 9px 0 #264653, 10px 10px 0 #264653,
+              11px 11px 0 #264653, 12px 12px 0 #264653, 13px 13px 0 #264653, 14px 14px 0 #264653, 15px 15px 0 #264653,
+              16px 16px 0 #264653, 17px 17px 0 #264653, 18px 18px 0 #264653, 19px 19px 0 #264653, 20px 20px 0 #264653,
+              21px 21px 0 #264653, 22px 22px 0 #264653, 23px 23px 0 #264653, 24px 24px 0 #264653, 25px 25px 0 #264653,
+              26px 26px 0 #264653, 27px 27px 0 #264653, 28px 28px 0 #264653, 29px 29px 0 #264653, 30px 30px 0 #264653;
   cursor: pointer;
   display: inline-block;
   margin: 3px 5px;
