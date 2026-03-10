@@ -27,4 +27,8 @@ class Plan(BaseModel):
     sub_questions: list[str]
     search_tasks: list[SearchTask]
     stopping_conditions: StoppingConditions
-    
+    provider: str = "placeholder"
+    model: str = "placeholder"
+    prompt_version: str = "placeholder"
+    schema_version: str = "v1"
+    run_mode: str = "mvp_scaffold"

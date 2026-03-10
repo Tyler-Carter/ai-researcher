@@ -14,4 +14,8 @@ class SourceSummary(BaseModel):
     counterpoints: list[str] = Field(default_factory=list)
     evidence_snippets: list[dict[str, str]] = Field(default_factory=list)
     citation_anchor: str
-    
+    provider: str = "placeholder"
+    model: str = "placeholder"
+    prompt_version: str = "placeholder"
+    schema_version: str = "v1"
+    run_mode: str = "mvp_scaffold"

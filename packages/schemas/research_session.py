@@ -17,4 +17,6 @@ class ResearchSession(BaseModel):
     provider: str = "placeholder"
     model: str = "placeholder"
     run_mode: str = "mvp_scaffold"
+    prompt_version: str = "placeholder"
+    schema_version: str = "v1"
     comparison_group_id: str | None = None

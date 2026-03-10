@@ -20,6 +20,8 @@ class SourceEvaluation(BaseModel):
     provider: str = "placeholder"
     model: str = "placeholder"
     run_mode: str = "mvp_scaffold"
+    prompt_version: str = "placeholder"
+    schema_version: str = "v1"
     latency_ms: int = 0
     token_usage: dict[str, int] = Field(default_factory=lambda: {"input": 0, "output": 0})
     estimated_cost_usd: float = 0.0

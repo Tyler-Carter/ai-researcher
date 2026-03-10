@@ -17,5 +17,10 @@ class FinalReport(BaseModel):
     source_table: list[dict] = Field(default_factory=list)
     appendix_trace_ref: str
     provider_summary: str = "placeholder"
+    provider: str = "placeholder"
+    model: str = "placeholder"
+    prompt_version: str = "placeholder"
+    schema_version: str = "v1"
+    run_mode: str = "mvp_scaffold"
     benchmark_summary: str = "mvp scaffold run"
     comparison_index: str = "n/a"
