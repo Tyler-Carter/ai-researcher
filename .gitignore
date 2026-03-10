@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# local files
+node_modules/
+dist/
+__pycache__/
+*.pyc
