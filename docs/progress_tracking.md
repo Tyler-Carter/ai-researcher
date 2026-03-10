@@ -41,7 +41,7 @@ Current repository state is an MVP slice with:
 4. **Database persistence (PostgreSQL), Redis/job system, migrations, repositories** are not present.
 5. **PDF export pipeline** is not present.
 6. **Benchmarking and comparison dashboard plumbing** is not present.
-7. **Contradiction mining / mixed-evidence synthesis** is not implemented yet.
+7. **Contradiction mining / mixed-evidence synthesis** now has a heuristic report-level pass, but deeper claim-level extraction remains pending.
 
 ---
 
@@ -59,19 +59,18 @@ Current repository state is an MVP slice with:
 
 ### Next high-impact steps
 
-1. Add frontend export controls to request markdown/html artifacts and provide download UX from session results.
+1. Expand contradiction analysis from title/abstract cue detection to claim-level contradiction mapping with explicit source-to-source links.
 
 ---
 
 ## 3) Task completed in this update
 
 ### Task
-Implement the next roadmap step by adding persistent session/artifact storage for completed runs.
+Implement the next roadmap step by adding heuristic contradiction-aware synthesis in report generation.
 
 ### Steps accomplished
 
-1. Extended `frontend/App.tsx` state and handlers to call `GET /research/{session_id}/export/{export_format}` for markdown/html.
-2. Added browser download logic in the frontend to save returned export content as `.md` or `.html` files.
-3. Added a dedicated exports panel in the UI with markdown/html download buttons, disabled-state guidance before a run, and status messaging.
-4. Updated `frontend/App.css` with lightweight export-action and status styles.
-5. Kept backend orchestration and export generation logic unchanged to scope the task strictly to frontend export UX.
+1. Added lightweight stance classification that labels retrieved sources as supporting, contradicting, or neutral using title/abstract lexical cues.
+2. Added report-level competing-view synthesis that summarizes whether evidence is mixed, mostly supportive, mostly cautionary, or lacking explicit contrast.
+3. Updated report evidence-gap generation to call out missing contradictory evidence when conflict signals are absent.
+4. Kept retrieval/evaluation contracts unchanged so the change remains scoped to the report synthesis stage.

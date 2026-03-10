@@ -467,24 +467,29 @@ def _generate_report(
     summaries: list[SourceSummary],
     sources: list[Source],
 ) -> FinalReport:
+    competing_views = _build_competing_views(sources)
+    evidence_gaps = ["Need deeper extraction of methods and outcome measures."]
+    if not any("conflicting" in view.lower() for view in competing_views):
+        evidence_gaps.append("Contradictory evidence remains sparse for this query.")
+
     return FinalReport(
-        report_id=uuid4(),
-        session_id=session.session_id,
-        executive_summary=(
-            f"Retrieved {len(sources)} deduplicated sources from web and scholarly connectors "
-            "for initial evidence mapping."
-        ),
-        answer=f"Initial evidence set assembled for query: {session.query}",
-        key_findings=[summary.concise_summary for summary in summaries],
-        competing_views=["Contradiction mining is pending implementation."],
-        limitations=[
-            "Current report is heuristic and connector-driven.",
-            "No iterative planning loop has been applied.",
-        ],
-        evidence_gaps=["Need deeper extraction of methods, outcomes, and contradictions."],
-        source_table=[{"source_id": str(source.source_id), "title": source.title} for source in sources],
-        appendix_trace_ref=str(session.session_id),
-    )
+            report_id=uuid4(),
+            session_id=session.session_id,
+            executive_summary=(
+                f"Retrieved {len(sources)} deduplicated sources from web and scholarly connectors "
+                "for initial evidence mapping."
+            ),
+            answer=f"Initial evidence set assembled for query: {session.query}",
+            key_findings=[summary.concise_summary for summary in summaries],
+            competing_views=competing_views,
+            limitations=[
+                "Current report is heuristic and connector-driven.",
+                "No iterative planning loop has been applied.",
+            ],
+            evidence_gaps=evidence_gaps,
+            source_table=[{"source_id": str(source.source_id), "title": source.title} for source in sources],
+            appendix_trace_ref=str(session.session_id),
+        )
 
 
 def run_pipeline(query: str) -> PipelineArtifacts:
@@ -504,3 +509,59 @@ def run_pipeline(query: str) -> PipelineArtifacts:
         summaries=summaries,
         report=report,
     )
+
+def _classify_evidence_stance(source: Source) -> str:
+    text = f"{source.title} {source.abstract or ''}".lower()
+
+    contradiction_cues = [
+        "no significant",
+        "not effective",
+        "limited evidence",
+        "inconclusive",
+        "adverse",
+        "risk",
+        "null effect",
+    ]
+    supporting_cues = ["improves", "improvement", "effective", "benefit", "reduction", "positive effect"]
+
+    if any(cue in text for cue in contradiction_cues):
+        return "contradicting"
+    if any(cue in text for cue in supporting_cues):
+        return "supporting"
+    return "neutral"
+
+
+def _build_competing_views(sources: list[Source]) -> list[str]:
+    supporting_titles: list[str] = []
+    contradicting_titles: list[str] = []
+
+    for source in sources:
+        stance = _classify_evidence_stance(source)
+        if stance == "supporting":
+            supporting_titles.append(source.title)
+        elif stance == "contradicting":
+            contradicting_titles.append(source.title)
+
+    if supporting_titles and contradicting_titles:
+        return [
+            (
+                f"Conflicting evidence detected: {len(supporting_titles)} sources suggest positive effects "
+                f"while {len(contradicting_titles)} sources report weaker or negative outcomes."
+            ),
+            f"Supportive example: {supporting_titles[0]}",
+            f"Contradicting example: {contradicting_titles[0]}",
+        ]
+
+    if contradicting_titles:
+        return [
+            "Evidence leans cautious: several sources emphasize limited or negative findings.",
+            f"Representative source: {contradicting_titles[0]}",
+        ]
+
+    if supporting_titles:
+        return [
+            "Evidence is directionally consistent toward positive findings, with limited explicit contradiction.",
+            f"Representative source: {supporting_titles[0]}",
+        ]
+
+    return ["No explicit competing views detected in retrieved abstracts; additional targeted retrieval is recommended."]
