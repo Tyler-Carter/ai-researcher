@@ -59,18 +59,19 @@ Current repository state is an MVP slice with:
 
 ### Next high-impact steps
 
-1. Add explicit schema-validation checkpoints at stage boundaries (simulate Structured Outputs handoff validation before each stage consumes upstream artifacts).
+1. Populate provider/model/prompt/schema instrumentation fields at runtime for every model-driven stage artifact instead of using placeholders.
 
 ---
 
 ## 3) Task completed in this update
 
 ### Task
-Implement the next roadmap step by adding claim-level contradiction mapping with explicit source-to-source links.
+Implement the next roadmap step by adding explicit schema-validation checkpoints between orchestration stages.
 
 ### Steps accomplished
 
-1. Added a `contradiction_map` field to the `FinalReport` schema to carry structured contradiction pairs.
-2. Implemented heuristic claim extraction and source-pair mapping between supporting and contradicting evidence.
-3. Wired contradiction map generation into report synthesis so report artifacts include explicit linked pairs with rationale.
-4. Updated summary counterpoints/evidence-gap messaging to reflect the new contradiction mapping coverage and its heuristic limitations.
+1. Added reusable validation helpers in `run_pipeline.py` to enforce typed handoff checks for single artifacts and list payloads.
+2. Wrapped each pipeline stage (`session`, `plan`, `retrieval`, `evaluation`, `summarization`, `report`) with explicit re-validation before downstream consumption.
+3. Added validation for final session completion update and final pipeline response packaging to ensure outbound API artifacts remain schema-valid.
+4. The pipeline now fails fast on schema violations at stage boundaries, approximating Structured Outputs-style contract enforcement for inter-stage handoffs.
+

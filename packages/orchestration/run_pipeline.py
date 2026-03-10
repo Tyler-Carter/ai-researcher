@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 import re
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Literal, TypeVar
 from urllib.parse import quote_plus
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 
 from packages.schemas import (
@@ -32,6 +32,27 @@ class PipelineArtifacts(BaseModel):
     summaries: list[SourceSummary]
     report: FinalReport
 
+ModelT = TypeVar("ModelT", bound=BaseModel)
+
+
+def _validate_stage_model(model_type: type[ModelT], artifact: ModelT, stage_name: str) -> ModelT:
+    """Enforce schema validation at stage handoff boundaries."""
+    try:
+        return model_type.model_validate(artifact.model_dump(mode="python"))
+    except ValidationError as exc:
+        raise ValueError(f"{stage_name} produced invalid {model_type.__name__} payload") from exc
+
+
+def _validate_stage_list(model_type: type[ModelT], artifacts: list[ModelT], stage_name: str) -> list[ModelT]:
+    """Validate list payloads to simulate strict inter-stage contract checks."""
+    validated: list[ModelT] = []
+    for artifact in artifacts:
+        try:
+            normalized = model_type.model_validate(artifact.model_dump(mode="python"))
+        except ValidationError as exc:
+            raise ValueError(f"{stage_name} produced invalid list[{model_type.__name__}] payload") from exc
+        validated.append(normalized)
+    return validated
 
 def _build_session(query: str) -> ResearchSession:
     now = datetime.now(tz=None)
@@ -42,7 +63,6 @@ def _build_session(query: str) -> ResearchSession:
         created_at=now,
         updated_at=now,
     )
-
 
 def _build_plan(session: ResearchSession) -> Plan:
     return Plan(
@@ -398,7 +418,7 @@ def _evaluate_sources(sources: list[Source]) -> list[SourceEvaluation]:
                 + (corroboration_score * 0.10)
                 + (metadata_completeness_score * 0.20)
         )
-        decision = "keep" if overall_score >= 0.65 else "discard"
+        decision: Literal["keep", "discard", "soft_keep"] = "keep" if overall_score >= 0.65 else "discard"
         flags = []
         if source.source_type == "web":
             flags.append("non_peer_reviewed")
@@ -495,15 +515,16 @@ def _generate_report(
 
 
 def run_pipeline(query: str) -> PipelineArtifacts:
-    session = _build_session(query)
-    plan = _build_plan(session)
-    sources = _retrieve_sources(session, plan)
-    evaluations = _evaluate_sources(sources)
-    summaries = _summarize_sources(sources, evaluations)
-    report = _generate_report(session, summaries, sources)
+    session = _validate_stage_model(ResearchSession, _build_session(query), "session_creation")
+    plan = _validate_stage_model(Plan, _build_plan(session), "planning")
+    sources = _validate_stage_list(Source, _retrieve_sources(session, plan), "retrieval")
+    evaluations = _validate_stage_list(SourceEvaluation, _evaluate_sources(sources), "evaluation")
+    summaries = _validate_stage_list(SourceSummary, _summarize_sources(sources, evaluations), "summarization")
+    report = _validate_stage_model(FinalReport, _generate_report(session, summaries, sources), "report_generation")
     completed_session = session.model_copy(update={"status": "completed", "updated_at": datetime.now(tz=None)})
+    completed_session = _validate_stage_model(ResearchSession, completed_session, "session_completion")
 
-    return PipelineArtifacts(
+    artifacts = PipelineArtifacts(
         session=completed_session,
         plan=plan,
         sources=sources,
@@ -511,6 +532,7 @@ def run_pipeline(query: str) -> PipelineArtifacts:
         summaries=summaries,
         report=report,
     )
+    return _validate_stage_model(PipelineArtifacts, artifacts, "pipeline_response")
 
 def _classify_evidence_stance(source: Source) -> str:
     text = f"{source.title} {source.abstract or ''}".lower()
