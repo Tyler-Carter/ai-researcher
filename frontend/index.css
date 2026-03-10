@@ -4,7 +4,10 @@
 }
 
 body {
-  background: #2a9d8f;
-  margin: 0;
-  min-width: 320px;
+  background: #555 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAB9JREFUeNpi/P//PwM6YGLAAuCCmpqacC2MRGsHCDAA+fIHfeQbO8kAAAAASUVORK5CYII=);
+  color: #eee;
+  text-align: center;
+}
+a {
+  color: #ccc;
 }

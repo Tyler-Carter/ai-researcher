@@ -15,11 +15,23 @@ type ResearchResponse = {
     report_snapshot: string
 }
 
+type ExportFormat = 'markdown' | 'html'
+
+type ExportResponse = {
+    session_id: string
+    export_format: ExportFormat
+    file_path: string
+    content: string
+}
+
 function App() {
     const [query, setQuery] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [result, setResult] = useState<ResearchResponse | null>(null)
+    const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null)
+    const [exportStatus, setExportStatus] = useState<string | null>(null)
+
 
     const onSubmit: NonNullable<ComponentProps<'form'>['onSubmit']> = (event) => {
         event.preventDefault()
@@ -44,6 +56,7 @@ function App() {
 
                 const data = (await response.json()) as ResearchResponse
                 setResult(data)
+                setExportStatus(null)
             } catch (requestError) {
                 setError(requestError instanceof Error ? requestError.message : 'Unknown request error')
             } finally {
@@ -52,27 +65,83 @@ function App() {
         })()
     }
 
+    const onExport = (format: ExportFormat) => {
+        if (!result) {
+            return
+        }
 
+        setExportingFormat(format)
+        setError(null)
+        setExportStatus(null)
 
-  return (
+        void (async () => {
+            try {
+                const response = await fetch(
+                    `http://localhost:8000/research/${result.session_id}/export/${format}`,
+                    { method: 'GET' },
+                )
+
+                if (!response.ok) {
+                    throw new Error(`Export failed with status ${response.status}`)
+                }
+
+                const data = (await response.json()) as ExportResponse
+                const fileExtension = format === 'markdown' ? 'md' : 'html'
+                const blob = new Blob([data.content], {
+                    type: format === 'markdown' ? 'text/markdown;charset=utf-8' : 'text/html;charset=utf-8',
+                })
+                const downloadUrl = URL.createObjectURL(blob)
+                const anchor = document.createElement('a')
+                anchor.href = downloadUrl
+                anchor.download = `research-${data.session_id}.${fileExtension}`
+                document.body.appendChild(anchor)
+                anchor.click()
+                anchor.remove()
+                URL.revokeObjectURL(downloadUrl)
+
+                setExportStatus(`Downloaded ${format} export.`)
+            } catch (exportError) {
+                setError(exportError instanceof Error ? exportError.message : 'Unknown export error')
+            } finally {
+                setExportingFormat(null)
+            }
+        })()
+    }
+
+    return (
       <main className="app-shell">
-          <div className="logo">AI Researcher</div>
-          <div className="search">
-              <form onSubmit={onSubmit}>
-                  <input
-                      type="text"
-                      value={query}
-                      onChange={(event) => setQuery(event.target.value)}
-                      placeholder="Enter a research question..."
-                  />
-                  <div className="button">
-                      <button type="submit" disabled={loading}>
-                          {loading ? 'Running...' : 'Run'}
-                      </button>
-                  </div>
-              </form>
+          <form onSubmit={onSubmit} className="form-wrapper cf">
+              <input
+                  type="text"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Enter a research question..."
+              />
+              <div className="button">
+                  <button type="submit" disabled={loading}>
+                      {loading ? 'Running...' : 'Run'}
+                  </button>
+              </div>
+          </form>
+          <div className="byline"><p>Export Options</p></div>
+          <div className="button">
+              <button
+                  type="button"
+                  onClick={() => onExport('html')}
+                  disabled={exportingFormat !== null || result === null}
+              >
+                  {exportingFormat === 'html' ? 'Exporting HTML...' : 'HTML'}
+              </button>
+              <button
+                  type="button"
+                  onClick={() => onExport('markdown')}
+                  disabled={exportingFormat !== null || result === null}
+              >
+                  {exportingFormat === 'markdown' ? 'Exporting Markdown...' : 'Markdown'}
+              </button>
           </div>
-
+          <div className="byline"><p>{exportStatus ? <p className="export-status">{exportStatus}</p> : null}</p>
+          </div>
 
           {error ? <p className="error">{error}</p> : null}
 
