@@ -1021,3 +1021,29 @@ The following are emphasized in the case study:
 - summarizer writes notes for top 8
 - report generator writes markdown with citations
 - frontend shows trace, source table, report, session save
+
+---
+
+## MVP scaffold run guide (current state)
+
+### Run frontend + backend
+
+1. Install frontend deps:
+  - `npm install`
+2. Run backend API (from repo root):
+  - `uvicorn backend.api.app.main:app --reload --port 8000`
+3. Run frontend dev server:
+  - `npm run dev`
+4. Open the Vite URL and use the **Run Research** form to call `POST /research/run`.
+
+### Current MVP scope
+
+- End-to-end orchestration path is implemented as typed placeholders.
+- Pipeline stages return schema-valid scaffold objects for planning, retrieval, evaluation, summarization, and report generation.
+- Live connectors (OpenAlex/Crossref/Semantic Scholar/arXiv), persistence, and iterative loops are not yet implemented.
+
+### Contract + orchestration locations
+
+- Schema contracts: `packages/schemas/`
+- Orchestration entrypoint: `packages/orchestration/run_pipeline.py`
+- API route for execution: `backend/api/app/routes/research.py`
