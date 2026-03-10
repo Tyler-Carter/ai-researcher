@@ -29,6 +29,7 @@ Codex instruction discovery order (highest-level to closest context):
 - Do not run destructive git/file operations unless explicitly requested.
 - After code changes, run the smallest relevant tests/lint first; expand only if needed.
 - For substantial frontend/backend changes in this repo, run `npm run lint` before finalizing.
+- Update `docs/progress_tracking.md` with any steps performed as part of an implementation / task.
 
 ## Project Parameters (from README.md)
 
