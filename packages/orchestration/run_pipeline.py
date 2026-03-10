@@ -6,6 +6,7 @@ from datetime import date, datetime
 from typing import Any
 from urllib.parse import quote_plus
 from urllib.request import Request, urlopen
+from xml.etree import ElementTree
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
@@ -53,7 +54,7 @@ def _build_plan(session: ResearchSession) -> Plan:
             SearchTask(
                 task_id=uuid4(),
                 question=session.query,
-                target_sources=["web", "openalex", "crossref"],
+                target_sources=["web", "openalex", "crossref", "semantic_scholar", "arxiv"],
                 query_templates=[session.query],
                 inclusion_criteria=["Directly relevant to query"],
                 exclusion_criteria=["No citation metadata"],
@@ -72,6 +73,9 @@ def _retrieve_sources(session: ResearchSession, plan: Plan) -> list[Source]:
     candidates.extend(_search_web(query=query, session_id=session.session_id))
     candidates.extend(_search_openalex(query=query, session_id=session.session_id))
     candidates.extend(_search_crossref(query=query, session_id=session.session_id))
+    candidates.extend(_search_semantic_scholar(query=query, session_id=session.session_id))
+    candidates.extend(_search_arxiv(query=query, session_id=session.session_id))
+
 
     return _deduplicate_sources(candidates)
 
@@ -232,6 +236,111 @@ def _search_crossref(query: str, session_id: UUID) -> list[Source]:
                 doi=doi,
                 abstract=_strip_html(item.get("abstract")),
                 raw_payload={"connector": "crossref", "item": item},
+            )
+        )
+
+    return results
+
+
+def _search_semantic_scholar(query: str, session_id: UUID) -> list[Source]:
+    encoded = quote_plus(query)
+    api_url = (
+        "https://api.semanticscholar.org/graph/v1/paper/search?"
+        f"query={encoded}&limit=5&fields=title,url,authors,venue,year,abstract,externalIds"
+    )
+
+    try:
+        payload = _fetch_json(api_url)
+    except Exception:
+        return []
+
+    results: list[Source] = []
+    for paper in payload.get("data", []):
+        authors = [author.get("name", "") for author in paper.get("authors", [])]
+        authors = [name for name in authors if name]
+
+        external_ids = paper.get("externalIds") or {}
+        doi = external_ids.get("DOI")
+        semantic_scholar_id = external_ids.get("CorpusId") or external_ids.get("ArXiv")
+        paper_url = paper.get("url") or (f"https://doi.org/{doi}" if doi else "")
+
+        published_date = None
+        year = paper.get("year")
+        if isinstance(year, int):
+            try:
+                published_date = date(year, 1, 1)
+            except ValueError:
+                published_date = None
+
+        results.append(
+            Source(
+                source_id=uuid4(),
+                session_id=session_id,
+                title=paper.get("title") or "Untitled",
+                url=paper_url,
+                canonical_url=paper_url,
+                authors=authors,
+                publisher_or_venue=paper.get("venue") or "Semantic Scholar",
+                published_date=published_date,
+                source_type="paper",
+                doi=doi,
+                semantic_scholar_id=semantic_scholar_id,
+                abstract=_strip_html(paper.get("abstract")),
+                raw_payload={"connector": "semantic_scholar", "paper": paper},
+            )
+        )
+
+    return results
+
+
+def _search_arxiv(query: str, session_id: UUID) -> list[Source]:
+    encoded = quote_plus(query)
+    api_url = f"http://export.arxiv.org/api/query?search_query=all:{encoded}&start=0&max_results=5"
+
+    try:
+        request = Request(api_url, headers={"User-Agent": "ai-researcher-mvp/0.1 (+retrieval-service)"})
+        with urlopen(request, timeout=12) as response:
+            payload = response.read().decode("utf-8")
+    except Exception:
+        return []
+
+    try:
+        root = ElementTree.fromstring(payload)
+    except ElementTree.ParseError:
+        return []
+
+    ns = {"atom": "http://www.w3.org/2005/Atom"}
+    results: list[Source] = []
+
+    for entry in root.findall("atom:entry", ns):
+        title = (entry.findtext("atom:title", default="", namespaces=ns) or "").strip()
+        summary = (entry.findtext("atom:summary", default="", namespaces=ns) or "").strip()
+        entry_id = (entry.findtext("atom:id", default="", namespaces=ns) or "").strip()
+        published = (entry.findtext("atom:published", default="", namespaces=ns) or "").strip()
+
+        authors = []
+        for author_el in entry.findall("atom:author", ns):
+            name = (author_el.findtext("atom:name", default="", namespaces=ns) or "").strip()
+            if name:
+                authors.append(name)
+
+        published_date = _parse_date(published[:10])
+        arxiv_id = entry_id.rsplit("/", 1)[-1] if entry_id else None
+
+        results.append(
+            Source(
+                source_id=uuid4(),
+                session_id=session_id,
+                title=title or "Untitled",
+                url=entry_id,
+                canonical_url=entry_id,
+                authors=authors,
+                publisher_or_venue="arXiv",
+                published_date=published_date,
+                source_type="paper",
+                arxiv_id=arxiv_id,
+                abstract=_strip_html(summary),
+                raw_payload={"connector": "arxiv", "entry_id": entry_id},
             )
         )
 

@@ -17,10 +17,13 @@ Current repository state is an MVP slice with:
 
 1. **Contract-first core objects exist** via `packages/schemas/*`.
 2. **Orchestration flow exists** in `run_pipeline(query)` and is invoked by API route `/research/run`.
-3. **Retrieval includes web + scholarly connectors (subset):**
+3. **Retrieval includes web + scholarly connectors:**
     - web (Wikipedia search)
     - OpenAlex
     - Crossref
+   - Semantic Scholar
+   - arXiv
+
 4. **Deduplication exists** with DOI/URL/title fallback keys.
 5. **Evaluation exists** with deterministic heuristic scoring and keep/discard decision.
 6. **Summarization exists** as structured notes with citation anchors.
@@ -38,12 +41,12 @@ Current repository state is an MVP slice with:
 1. **Most repo layout targets** under `packages/` are absent (agents/, retrieval module split, storage/, exports/, benchmarks/).
 2. **Backend service decomposition** into separate services/modules is not present.
 3. **Iterative orchestration endpoint** (`/research/run-iterative`) is not present.
-4. **Remaining scholarly connectors** in README target are not present yet (Semantic Scholar, arXiv).
-5. **Double validation with Structured Outputs + Pydantic** is not implemented; current pipeline is deterministic Python logic.
-6. **Database persistence (PostgreSQL), Redis/job system, migrations, repositories** are not present.
-7. **Export pipeline (markdown/html/pdf)** is not present.
-8. **Benchmarking and comparison dashboard plumbing** is not present.
-9. **Contradiction mining / mixed-evidence synthesis** is not implemented yet.
+4. **Double validation with Structured Outputs + Pydantic** is not implemented; current pipeline is deterministic Python logic.
+5. **Database persistence (PostgreSQL), Redis/job system, migrations, repositories** are not present.
+6. **Export pipeline (markdown/html/pdf)** is not present.
+7. **Benchmarking and comparison dashboard plumbing** is not present.
+8. **Contradiction mining / mixed-evidence synthesis** is not implemented yet.
+
 
 ---
 
@@ -54,11 +57,24 @@ Current repository state is an MVP slice with:
 - End-to-end MVP request path from frontend form to backend pipeline response.
 - Typed schemas and typed response model.
 - Deterministic retrieval/evaluation/summarization/report generation.
+- Semantic Scholar and arXiv retrieval connectors integrated into pipeline retrieval.
 
 ### Next high-impact steps
 
 1. Add persistent session/source/artifact storage.
-2. Split retrieval into connector modules and add Semantic Scholar + arXiv.
-3. Introduce provider abstraction and real model-driven planner/summarizer/report stages with strict schema validation.
-4. Add contradiction detection and stronger claim-level corroboration.
-5. Add export and benchmarking layers from README target architecture.
+
+---
+
+## 3) Task completed in this update
+
+### Task
+Implement the next roadmap step by closing the retrieval-coverage gap: add Semantic Scholar + arXiv connectors to the MVP retrieval stage.
+
+### Steps accomplished
+
+1. Expanded planner task target sources to include `semantic_scholar` and `arxiv`.
+2. Wired retrieval orchestration to call both new connectors.
+3. Implemented Semantic Scholar paper search integration and normalized fields into `Source` schema shape.
+4. Implemented arXiv Atom feed search integration and normalized fields into `Source` schema shape.
+5. Kept dedup/evaluation/summarization/report stages unchanged so the update remains narrowly scoped to retrieval coverage.
+
